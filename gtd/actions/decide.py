@@ -1,18 +1,31 @@
 """Pick out an action that, with the given context and time, is the best to do"""
 from time import sleep
 from random import random
-from gtd.actions.models import Context, Project, NextAction
+from datetime import date, timedelta
+
+from gtd.actions.models import Context, Project, NextAction, DeadlineAction
 from gtd.tools import inp
 
 class DecideScript:
     def run(self):
-        print("Welcome. Let's see what we've got, shall we.")
-        sleep(1)
+        action = self._deadlineaction() or self._nextaction()
+        if action:
+            self._printout(action)
+
+    def _deadlineaction(self):
+        print("Checking deadlineactions...")
+        actions = DeadlineAction.objects.filter(done = False).order_by('deadline')
+        for action in actions:
+            if action.deadline < date.today() + timedelta(days = 7):
+                return action
+        
+
+    def _nextaction(self):
         actions = NextAction.objects.filter(done = False)
         contexts = self._getcontexts()
         actions = actions.filter(context_id__in = contexts)
         n = actions.count()
-        print("We have left, {n} actions within context".format(**locals()))
+        print("We have left, {n} next actions within context".format(**locals()))
         if n:
             sleep(1)
             if random() < .5:
@@ -38,6 +51,7 @@ class DecideScript:
                 if hasattr(p, 'parent') and p.parent:
                     if not p.parent == p:
                         projects.append(p.parent)
+                        p = p.parent
                     else:
                         print("recursive parent fail")
                         break
@@ -48,6 +62,8 @@ class DecideScript:
         
         print("{a.id} | {a.name}".format(**locals()))
         print("{a.description}".format(**locals()))
+        if a.__class__ == DeadlineAction:
+            print("Deadline: {a.deadline}".format(**locals()))
         print("\n")
  
 if __name__ == "__main__":
