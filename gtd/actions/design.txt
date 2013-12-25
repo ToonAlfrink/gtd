@@ -1,0 +1,20 @@
+for each item:
+    process it. if fail, ask for try-again
+
+	    
+
+process:
+    decide actionable/project/file/trash	
+    if actionable:
+        create action
+
+actionable
+    decide execute/delegate/list
+
+project
+    create project
+
+file
+    set item as saved, next
+
+execute action   
