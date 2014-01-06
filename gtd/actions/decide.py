@@ -3,14 +3,26 @@ from time import sleep
 from random import random
 from datetime import date, timedelta
 
-from gtd.actions.models import Context, Project, NextAction, DeadlineAction
-from gtd.tools import inp
+from gtd.actions.models import Context, Project, NextAction, DeadlineAction, RecurrentAction
+from gtd.tools import inp, CronHandler
 
 class DecideScript:
     def run(self):
-        action = self._deadlineaction() or self._nextaction()
+        action = self._recurrentaction() or self._deadlineaction() or self._nextaction()
         if action:
             self._printout(action)
+
+    def _recurrentaction(self):
+        print("Checking recurrent action...")
+        for action in RecurrentAction.objects.all():
+            cron = CronHandler(action.cron)
+            lastenabled = cron.lastenabled()
+            if not lastenabled:
+                continue
+            if not action.last_completed:
+                return action
+            if action.last_completed < lastenabled:
+                return action
 
     def _deadlineaction(self):
         print("Checking deadlineactions...")
@@ -60,7 +72,7 @@ class DecideScript:
             for project in reversed(projects):
                 print("-> " + project.name)
         
-        print("{a.id} | {a.name}".format(**locals()))
+        print("{a.__class__.__name__} | {a.id} | {a.name}".format(**locals()))
         print("{a.description}".format(**locals()))
         if a.__class__ == DeadlineAction:
             print("Deadline: {a.deadline}".format(**locals()))

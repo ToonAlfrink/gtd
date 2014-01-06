@@ -1,15 +1,12 @@
 """Mark an action as completed"""
 
-from gtd.actions.models import WaitingFor, NextAction, SomeDayAction
-#from gtd.calendar.models import CalendarAction
+from gtd.actions.models import WaitingFor, NextAction, SomeDayAction, DeadlineAction, RecurrentAction
+from datetime import datetime, timedelta
+import pytz
 
 class DoneScript:
     def run(self, opts):
-        try:
-            action = self._parseopts(opts)
-        except Exception:
-            print("gtd done [-n|-w|-s|-d] [id]")
-            return
+        action = self._parseopts(opts)
         action.done = True
         action.save()
         self._reward()
@@ -23,11 +20,14 @@ class DoneScript:
             return WaitingFor.objects.get(pk = pk)
         elif type == "-s":
             return SomeDayAction.objects.get(pk = pk)
-        elif type == "-c":
-            #return CalendarAction.objects.get(pk = pk)
-            pass
+        elif type == "-d":
+            return DeadlineAction.objects.get(pk = pk)
+        elif type == "-r":
+            action = RecurrentAction.objects.get(pk = pk)
+            action.last_completed = pytz.timezone('Europe/Amsterdam').localize(datetime.now() + timedelta(hours = 1))
+            return action
         else:
-            print("invalid type")
+            raise ValueError("invalid type")
 
     def _reward(self):
         """Do something to reward the user"""

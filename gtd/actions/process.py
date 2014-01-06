@@ -1,6 +1,6 @@
 """Process inbox items one by one"""
 from time import sleep
-from gtd.actions.models import Item, NextAction, Project
+from gtd.actions.models import Item, NextAction, DeadlineAction, WaitingFor, Project
 from gtd.tools import inp
 from gtd.actions.add import add_action_cli, create_action
 
@@ -38,7 +38,11 @@ class ProcessScript:
     def _checkprojects(self):
         for project in Project.objects.all():
             if not any([project.id == p.parent_id for p in Project.objects.all()]):
-                if not any([a.project_id == project.id for a in NextAction.objects.filter(done = False)]):
+                action_types = NextAction, DeadlineAction, WaitingFor
+                actions = []
+                for _type in action_types:
+                    actions.extend(list(_type.objects.filter(done = False)))
+                if not any([a.project_id == project.id for a in actions]):
                     print("Project {project.pk}: '{project.name}' lacks a next action.".format(**locals()))
                     sleep(1)
                     create_action()
