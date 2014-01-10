@@ -1,6 +1,6 @@
 from django.db import models
-from gtd.tools import inp
-
+from gtd.tools import inp, CronEntry
+from datetime import datetime
 
 class Item(models.Model):
     info = models.TextField()
@@ -105,8 +105,23 @@ class RecurrentAction(NextAction):
     cron = models.CharField(max_length = 50)
     last_completed = models.DateTimeField(auto_now_add = True)
 
+    def __init__(self, *args, **kwargs):
+        super(RecurrentAction, self).__init__(*args, **kwargs)
+        self.cronhandler = CronEntry(self.cron)
+
     @classmethod
     def _create_cli(cls, action):
         action = NextAction._create_cli(action)
         action.cron = inp("Please input cron")
         return action
+
+    def is_enabled(self):
+        """Is this action to be done at the moment?"""
+        l = self.last_completed
+        p = self.cronhandler.previous()
+        return self.last_completed < p
+
+    def complete(self):
+        self.last_completed = datetime.now()
+        self.save()
+

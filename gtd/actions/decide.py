@@ -4,7 +4,7 @@ from random import random
 from datetime import date, timedelta
 
 from gtd.actions.models import Context, Project, NextAction, DeadlineAction, RecurrentAction
-from gtd.tools import inp, CronHandler
+from gtd.tools import inp, CronEntry
 
 class DecideScript:
     def run(self):
@@ -15,13 +15,7 @@ class DecideScript:
     def _recurrentaction(self):
         print("Checking recurrent action...")
         for action in RecurrentAction.objects.all():
-            cron = CronHandler(action.cron)
-            lastenabled = cron.lastenabled()
-            if not lastenabled:
-                continue
-            if not action.last_completed:
-                return action
-            if action.last_completed < lastenabled:
+            if action.is_enabled():
                 return action
 
     def _deadlineaction(self):

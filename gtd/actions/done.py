@@ -24,7 +24,7 @@ class DoneScript:
             return DeadlineAction.objects.get(pk = pk)
         elif type == "-r":
             action = RecurrentAction.objects.get(pk = pk)
-            action.last_completed = pytz.timezone('Europe/Amsterdam').localize(datetime.now() + timedelta(hours = 1))
+            action.complete()
             return action
         else:
             raise ValueError("invalid type")
