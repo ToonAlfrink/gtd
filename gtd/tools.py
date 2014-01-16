@@ -48,16 +48,30 @@ class CronEntry(object):
         the next date at which this cron will fire
         returns None if it won't in the next 100 years
         """
-        self.datepointer += timedelta(seconds = 60)
+        # Add a minute
+        self.datepointer += timedelta(minutes = 1)
+
+        # Check remaining minutes of the day
+        midnight = datetime.combine(datetime.date(self.datepointer) + timedelta(days = 1), time(0,0))
+        for x in range(int((midnight - self.datepointer).seconds / 60)):
+            self.datepointer += timedelta(minutes = 1)
+            if self.date_match(self.datepointer) and self.time_match(self.datepointer):
+                return self.datepointer
+
+        # None found, find the next day it fires
         for x in range(365 * 100):
             if self.date_match(self.datepointer):
                 break
             self.datepointer += timedelta(days = 1)
+
+        if x == 365 * 100:
+            return None
+
+        # Find the time it fires on that day
         for x in range(60 * 24):
-            if self.time_match(self.datepointer):
-                break
             self.datepointer += timedelta(minutes = 1)
-        return self.datepointer
+            if self.time_match(self.datepointer):
+                return self.datepointer
 
     def previous(self):
         """
@@ -109,7 +123,11 @@ class CronEntry(object):
         elif "*" in tab:
             result = range(*ranges[type])
         else:
-            raise ValueError("Unable to parse this bit: {}".format(tab))
+            if "," in tab:
+                result = []
+                [result.extend(self._getrange(bit, type)) for bit in tab.split(",")]
+            else:
+                raise ValueError("Unable to parse this bit: {}".format(tab))
 
         if "/" in tab:
             interval = int(tab.split("/")[1])

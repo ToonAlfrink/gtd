@@ -14,7 +14,7 @@ class DecideScript:
 
     def _recurrentaction(self):
         print("Checking recurrent action...")
-        for action in RecurrentAction.objects.all():
+        for action in RecurrentAction.objects.filter(done = False):
             if action.is_enabled():
                 return action
 

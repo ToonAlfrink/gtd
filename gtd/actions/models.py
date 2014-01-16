@@ -51,7 +51,7 @@ class Action(models.Model):
         print("Please describe the action, type 'OK' if done.")
         lines = []
         while True:
-            line = inp("")
+            line = raw_input("> ")
             if line == "OK":
                 break
             lines.append(line)
@@ -101,9 +101,10 @@ class DeadlineAction(NextAction):
         action.deadline = inp("Deadline date?")
         return action
 
-class RecurrentAction(NextAction):
+class RecurrentAction(Action):
     cron = models.CharField(max_length = 50)
     last_completed = models.DateTimeField(auto_now_add = True)
+    duration = models.IntegerField()
 
     def __init__(self, *args, **kwargs):
         super(RecurrentAction, self).__init__(*args, **kwargs)
@@ -111,7 +112,7 @@ class RecurrentAction(NextAction):
 
     @classmethod
     def _create_cli(cls, action):
-        action = NextAction._create_cli(action)
+        action = Action._create_cli(action)
         action.cron = inp("Please input cron")
         return action
 

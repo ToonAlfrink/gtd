@@ -7,7 +7,8 @@ import pytz
 class DoneScript:
     def run(self, opts):
         action = self._parseopts(opts)
-        action.done = True
+        if not action.__class__ == RecurrentAction:
+            action.done = True # For calendar items, 'done' means "will never occur again"
         action.save()
         self._reward()
         
