@@ -1,4 +1,5 @@
 def inp(prompt, constraints = []):
+    assert(type(constraints) == list)
     while True:
         x = raw_input(prompt + "\n> ")
         fail = False

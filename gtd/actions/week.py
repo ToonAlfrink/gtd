@@ -20,37 +20,20 @@ def printout(actions):
             print
         print("{weekday} {_time.hour:02d}:{_time.minute:02d} - {end_time.hour:02d}:{end_time.minute:02d} -> {action.name}".format(**locals()))
 
-
-
-def today():
-    """Prints an overview of today's scheduled actions"""
-    actions_today = []
-    actions = RecurrentAction.objects.all()
-    d1 = datetime.combine(date.today(), time(0,0))
-    d2 = d1 + timedelta(days = 7)
-    for action in actions:
-        for o in action.cronhandler.occurs_between(d1, d2):
-            actions_today.append((o, action))
-    actions_today = sorted(actions_today)
-    printout(actions_today)
-
-def thisweek():
-    """Prints an overview of the upcoming 7 day's scheduled actions"""
+def week(day):
+    """Prints an overview of 7 days of scheduled actions"""
+    print("gathering data for week...")
     actions_thisweek = []
     actions = RecurrentAction.objects.filter(done = False)
-    d1 = datetime.combine(date.today(), time(0,0))
+    d1 = datetime.combine(day, time(0,0))
     d2 = d1 + timedelta(days = 7)
     for action in actions:
-        upcoming = action.cronhandler.next()
-        if not upcoming or upcoming > datetime(2100,1,1):
-            action.done = True
-            action.save()
         for o in action.cronhandler.occurs_between(d1, d2):
             actions_thisweek.append((o, action))
     actions_thisweek = sorted(actions_thisweek)
     printout(actions_thisweek)
 
 if __name__ == "__main__":
-    thisweek()
+    week(date.today())
     
     

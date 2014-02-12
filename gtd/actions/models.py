@@ -114,6 +114,7 @@ class RecurrentAction(Action):
     def _create_cli(cls, action):
         action = Action._create_cli(action)
         action.cron = inp("Please input cron")
+        action.duration = inp("How long, in minutes, should this take?", ['x.isdigit()'])
         return action
 
     def is_enabled(self):

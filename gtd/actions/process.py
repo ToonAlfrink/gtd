@@ -4,14 +4,11 @@ from gtd.actions.models import Item, NextAction, DeadlineAction, WaitingFor, Pro
 from gtd.tools import inp
 from gtd.actions.add import add_action_cli, create_action
 
-class ProcessScript:
+class ProcessScript(object):
     def run(self):
         print("Good day")
         sleep(1)
         self._iteritems()
-        print("That's it. Checking projects...")
-        sleep(1)
-        self._checkprojects()
         print("Done. Cheers!")
         
     def _iteritems(self):
@@ -20,7 +17,7 @@ class ProcessScript:
         for item in items:
             while True:
                 try:
-                    self._process(item)
+                    add_action_cli(item)
                 except KeyboardInterrupt:
                     cont = raw_input("Start over from last item? (RET/^C)\n> ")
                 else:
@@ -30,23 +27,6 @@ class ProcessScript:
                         
             if not item.filed:
                 item.delete()
-                
-                    
-    def _process(self, item):
-        add_action_cli(item)
-            
-    def _checkprojects(self):
-        for project in Project.objects.all():
-            if not any([project.id == p.parent_id for p in Project.objects.all()]):
-                action_types = NextAction, DeadlineAction, WaitingFor
-                actions = []
-                for _type in action_types:
-                    actions.extend(list(_type.objects.filter(done = False)))
-                if not any([a.project_id == project.id for a in actions]):
-                    print("Project {project.pk}: '{project.name}' lacks a next action.".format(**locals()))
-                    sleep(1)
-                    create_action()
-
 
 if __name__ == "__main__":
     p = ProcessScript()
